@@ -36,27 +36,24 @@ namespace PupyninLab2.Controllers
         public ActionResult<GroupEntity> GetGroup(int id)
         {
             var groups = _context.Groups.ToList();
-            var group = groups.Where(tmp => tmp.Id == id).FirstOrDefault();
-            var students = _context.Students.ToList();
-
-            var sortedStudents = students.Where(tmp => tmp.GroupId == group.Id).ToList();
-
-            group.Students = sortedStudents;
-          
-
-            if (group == null)
+            if (GroupEntityExists(id))
             {
+                var group = groups.Where(tmp => tmp.Id == id).FirstOrDefault();
+                var students = _context.Students.ToList();
+                var filteredStudents = students.Where(tmp => tmp.GroupId == group.Id).ToList();
+                group.Students = filteredStudents;
+
+                return Ok(group);
+            } else {
                 return NotFound();
             }
-
-            return Ok(group);
         }
 
         // PUT: api/Group/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see https://aka.ms/RazorPagesCRUD.
         [Authorize(Roles = "admin")]
-        [HttpPut("{id}")]
+        [HttpPut("{id}  ")]
         public IActionResult PutGroup(int id, GroupEntity group)
         {
             if (id != group.Id)
@@ -92,10 +89,14 @@ namespace PupyninLab2.Controllers
         [HttpPost]
         public ActionResult<GroupEntity> PostGroup(GroupEntity group)
         {
-            _context.Groups.Add(group);
-            _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetGroup", new { id = group.Id }, group);
+            if (!GroupEntityExists(group.Id)){
+                _context.Groups.Add(group);
+                _context.SaveChanges();
+                return CreatedAtAction("GetGroup", new { id = group.Id }, group);
+            } else
+            {
+                return BadRequest(new { errorText = "Элемент с данным Id уже создан" });
+            }
         }
 
         // DELETE: api/Group/5
@@ -115,7 +116,7 @@ namespace PupyninLab2.Controllers
             return group;
         }
 
-        private bool GroupEntityExists(int id)
+        public bool GroupEntityExists(int id)
         {
             return _context.Groups.Any(e => e.Id == id);
         }

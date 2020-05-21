@@ -33,7 +33,7 @@ namespace PupyninLab2.Controllers
 
         // GET: api/Students/5
         [Authorize]
-        [HttpGet("{id}")]
+        [HttpGet("{id:int}")]
         public ActionResult<StudentEntity> GetStudent(int id)
         {
 
@@ -47,6 +47,27 @@ namespace PupyninLab2.Controllers
             }
 
             return student;
+        }
+
+
+        // GET: api/Students/АС-17-04
+        [Authorize]
+        [HttpGet("{groupCode}")]
+        public ActionResult<IEnumerable<string>> GetStudentsByGroup(string groupCode)
+        {
+            var groups = _context.Groups.ToList();
+            var group = groups.Where(tmp => tmp.Name == groupCode).FirstOrDefault();
+            if (group != null)
+            {
+                var students = _context.Students.ToList();
+                var filteredStudents = students.Where(tmp => tmp.GroupId == group.Id).ToList();
+                if (filteredStudents.Count != 0)
+                {
+                    return Ok(filteredStudents);
+                }
+            }
+
+            return NotFound();
         }
 
         // PUT: api/Students/5
